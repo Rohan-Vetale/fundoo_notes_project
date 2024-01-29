@@ -1,11 +1,11 @@
 from logging.config import fileConfig
-from core.model import Base
+from Core.model import Base
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-from core.settings import DATABASE_DIALECT, DATABASE_DRIVER, DATABASE_NAME, DATABASE_PASSWORD, DATABASE_USERNAME, DEFAULT_PORT, HOST
+from Core.settings import DATABASE_DIALECT, DATABASE_DRIVER, DATABASE_NAME, DATABASE_PASSWORD, DATABASE_USERNAME, DEFAULT_PORT, HOST
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
