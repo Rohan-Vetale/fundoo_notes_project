@@ -1,0 +1,7 @@
+DATABASE_NAME = "fundoo_notes"
+DATABASE_PASSWORD = "123456"
+DATABASE_DIALECT = "postgresql"
+DATABASE_DRIVER = "psycopg2"
+DATABASE_USERNAME = "postgres"
+HOST = "localhost"
+DEFAULT_PORT = "5432"
