@@ -12,8 +12,8 @@
 from sqlalchemy.exc import IntegrityError
 from fastapi import APIRouter, Depends, status, Response, HTTPException
 from sqlalchemy.orm import Session
-from Core.model import User, get_db
-from Core.schema import UserDetails, Userlogin
+from core.model import User, get_db
+from core.schema import UserDetails, Userlogin
 from passlib.hash import sha256_crypt
 
 router_user = APIRouter()
