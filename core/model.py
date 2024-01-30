@@ -11,7 +11,7 @@
 """
 
 from sqlalchemy.orm import declarative_base, Session
-from sqlalchemy import BigInteger, Column, String, create_engine
+from sqlalchemy import BigInteger, Boolean, Column, String, create_engine
 from core.settings import DATABASE_DIALECT, DATABASE_DRIVER, DATABASE_NAME, DATABASE_PASSWORD, DATABASE_USERNAME, DEFAULT_PORT, HOST
 
 database_url = f"{DATABASE_DIALECT}+{DATABASE_DRIVER}://{DATABASE_USERNAME}:{DATABASE_PASSWORD}@{HOST}:{DEFAULT_PORT}/{DATABASE_NAME}"
@@ -38,6 +38,7 @@ class User(Base):
     phone = Column(BigInteger)
     state = Column(String(100))
     password = Column(String(100))
+    is_verified = Column(Boolean, default=False)
     
     def __repr__(self):
         return self.user_name

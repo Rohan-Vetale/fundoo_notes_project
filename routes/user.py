@@ -9,6 +9,7 @@
 
 @Title : Fundoo Notes user module
 """
+from core.utils import JWT, send_verification_mail
 from sqlalchemy.exc import IntegrityError
 from fastapi import APIRouter, Depends, status, Response, HTTPException
 from sqlalchemy.orm import Session
@@ -17,10 +18,10 @@ from core.schema import UserDetails, Userlogin
 from passlib.hash import sha256_crypt
 
 router_user = APIRouter()
+jwt_handler = JWT()
 
 
-
-@router_user.post("/post", status_code=status.HTTP_201_CREATED)
+@router_user.post("/register", status_code=status.HTTP_201_CREATED)
 def user_registration(body: UserDetails, response: Response, db: Session = Depends(get_db)):
     """
     Description: This function create api for adding a new user.
@@ -33,8 +34,10 @@ def user_registration(body: UserDetails, response: Response, db: Session = Depen
         new_user = User(**user_data)
         db.add(new_user)
         db.commit()
+        token = jwt_handler.jwt_encode({'user_id': new_user.id})
+        send_verification_mail(token, new_user.email)
         db.refresh(new_user)
-        return {"status": 201, "message": "Registered successfully", 'data': new_user}
+        return {"status": 201, "message": "Registered successfully, check your mail to verify email", 'data': new_user, 'token' : token}
     except Exception as e:
         response.status_code = 400
         print(e)
@@ -59,3 +62,26 @@ def user_login(payload: Userlogin, response: Response, db: Session = Depends(get
     except Exception as e:
         response.status_code = 400
         return {"message": str(e), 'status': 400}
+    
+    
+@router_user.get("/verify")
+def verify_user(token: str, db: Session = Depends(get_db)):
+    """
+    Description: This function create api to verify the request when we click the verification link on send on mail.
+    Parameter: token : object as string, db : as database session.
+    Return: None
+    """
+    try:
+        decode_token = JWT.jwt_decode(token)
+        print(decode_token)
+        user_id = decode_token.get('user_id')
+        user = db.query(User).filter_by(id=user_id, is_verified=False).one_or_none()
+        if not user:
+            raise HTTPException(status_code=400, detail='User already verified or not found')
+        user.is_verified = True
+        db.commit()
+        return {'status': 200, "message": 'User verified successfully', 'data': {}}
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail='Internal Server Error')
