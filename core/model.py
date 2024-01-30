@@ -15,7 +15,6 @@ from sqlalchemy import BigInteger, Boolean, Column, String, create_engine
 from core.settings import DATABASE_DIALECT, DATABASE_DRIVER, DATABASE_NAME, DATABASE_PASSWORD, DATABASE_USERNAME, DEFAULT_PORT, HOST
 
 database_url = f"{DATABASE_DIALECT}+{DATABASE_DRIVER}://{DATABASE_USERNAME}:{DATABASE_PASSWORD}@{HOST}:{DEFAULT_PORT}/{DATABASE_NAME}"
-# database_url = f'postgresql+psycopg2://postgres:123456@localhost:5432/fundoo_notes'
 engine = create_engine(database_url)
 session = Session(engine)
 Base = declarative_base()

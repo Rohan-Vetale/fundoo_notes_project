@@ -6,7 +6,10 @@ from sqlalchemy import pool
 from alembic import context
 from core.model import Base
 
-from core.settings import DATABASE_NAME, DATABASE_PASSWORD
+
+
+from core.settings import DATABASE_DIALECT, DATABASE_DRIVER, DATABASE_NAME, DATABASE_PASSWORD, DATABASE_USERNAME, DEFAULT_PORT, HOST
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -22,7 +25,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 config.set_section_option("alembic", "sqlalchemy.url",
-                          f"postgresql+psycopg2://postgres:{DATABASE_PASSWORD}@localhost:5432/{DATABASE_NAME}")
+                          f"{DATABASE_DIALECT}+{DATABASE_DRIVER}://{DATABASE_USERNAME}:{DATABASE_PASSWORD}@{HOST}:{DEFAULT_PORT}/{DATABASE_NAME}")
 
 target_metadata = Base.metadata
 
