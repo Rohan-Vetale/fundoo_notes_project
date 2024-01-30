@@ -81,7 +81,7 @@ def verify_user(token: str, db: Session = Depends(get_db)):
             raise HTTPException(status_code=400, detail='User already verified or not found')
         user.is_verified = True
         db.commit()
-        return {'status': 200, "message": 'User verified successfully', 'data': {}}
+        return {'status': 200, "message": 'User verified successfully', }
     except HTTPException as e:
         raise e
     except Exception as e:

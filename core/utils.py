@@ -68,18 +68,3 @@ def send_verification_mail(verification_token : str, email):
         print(e)
         
     
-    
-                        
-def jwt_authorization(request: Request, db: Session = Depends(get_db)):
-    """
-    Description: This function decode jwt token.
-    Parameter: response as Response object, db as database session.
-    Return: None
-    """
-    token = request.headers.get('authorization')
-    decode_token = JWT.jwt_decode(token)
-    user_id = decode_token.get('user_id')
-    user = db.query(User).filter_by(id=user_id).one_or_none()
-    if not user:
-        raise HTTPException(status_code=401, detail='Unauthorized User')
-    request.state.user = user
