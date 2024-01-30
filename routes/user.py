@@ -53,8 +53,9 @@ def user_login(payload: Userlogin, response: Response, db: Session = Depends(get
     """
     try:
         user = db.query(User).filter_by(user_name=payload.user_name).first()
-        if user and sha256_crypt.verify(payload.password, user.password):
-            return {'status': 200, "message": 'Logged in successfully'}
+        if user and sha256_crypt.verify(payload.password, user.password) and user.is_verified:
+            token = jwt_handler.jwt_encode({'user_id': user.id})
+            return {'status': 200, "message": 'Logged in successfully', 'access_token': token}
         else:
             response.status_code = status.HTTP_401_UNAUTHORIZED
             return {"message": 'Invalid username, password, or user not verified', 'status': 401}
@@ -73,7 +74,7 @@ def verify_user(token: str, db: Session = Depends(get_db)):
     """
     try:
         decode_token = JWT.jwt_decode(token)
-        print(decode_token)
+        
         user_id = decode_token.get('user_id')
         user = db.query(User).filter_by(id=user_id, is_verified=False).one_or_none()
         if not user:
