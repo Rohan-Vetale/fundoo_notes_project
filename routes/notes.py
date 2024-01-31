@@ -16,7 +16,6 @@ def create_note(payload: UserNotes, request: Request, response: Response, db: Se
     Parameter: payload as NoteSchema object, response as Response object, db as database session.
     Return: Message of note added with status code 201.
     """
-    print("this is add notes",request.state)
     try:
         print(request.state.user.id)
         body = payload.model_dump()
@@ -31,3 +30,18 @@ def create_note(payload: UserNotes, request: Request, response: Response, db: Se
         response.status_code = status.HTTP_400_BAD_REQUEST
         print(e)
         return {"message": str(e)}
+    
+    
+@router_notes.get(path='/get_all_notes/', status_code=status.HTTP_200_OK)
+def read_notes(request: Request, db: Session = Depends(get_db)):
+    """
+    Description: This function is used to get all the notes titles of a user
+    Parameter: response as Response object, db as database session.
+    Return: Note titles of that user
+    """
+    try:
+        notes_titles = db.query(Notes.title).filter_by(user_id=request.state.user.id).all()
+        return{"message": f"All the notes title for {request.state.user.user_name} are : {notes_titles}"}
+    except Exception as e:
+        print(e)
+        return{"message": str(e)}
