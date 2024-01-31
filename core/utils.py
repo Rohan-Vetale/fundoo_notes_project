@@ -6,12 +6,38 @@ from core.settings import SECRET_KEY, ALGORITHM, SENDER_EMAIL, SENDER_PASSWORD
 from datetime import datetime, timedelta
 import pytz
 from jose import jwt
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, HTTPException, Request,status
 from sqlalchemy.orm import Session
 from core.model import get_db, User
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+
+def jwt_authentication(request : Request,db:Session = Depends(get_db)):
+    token = request.headers.get('authorization')
+    decoded_token = JWT.jwt_decode(token)
+    user_id = decoded_token.get('user_id')
+    user_data = db.query(User).filter_by(id=user_id).one_or_none()
+    if not user_data:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+    request.state.user = user_data
+    
+    
+    # user_data = db.query(User).filter_by(id=user_id).one_or_none
+    # print(f"inside jwt authentication function {user_id}")
+    # if user_data is None:
+    #     raise HTTPException(detail='user not found',status_code=400)
+    # request.state.user = user_data
+
+
+# def jwt_authentication(request: Request, db: Session = Depends(get_db)):
+#     token = request.headers.get('authorization')
+#     decode_token = JWT.decode_data(token)
+#     user_id = decode_token.get('user_id')
+#     user = db.query(User).filter_by(id=user_id).one_or_none()
+#     if not user:
+#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+#     request.state.user = user
 
 
 class JWT:

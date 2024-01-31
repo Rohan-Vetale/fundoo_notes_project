@@ -26,6 +26,7 @@ def get_db():
     finally:
         db.close()
 
+
 class User(Base):
     __tablename__ = 'user'
 
@@ -38,9 +39,11 @@ class User(Base):
     state = Column(String(100))
     password = Column(String(100))
     is_verified = Column(Boolean, default=False)
+    notes = relationship('Notes', back_populates='user')
     
     def __repr__(self):
         return self.user_name
+    
     
 class Notes(Base):
     __tablename__ = 'notes'
@@ -50,4 +53,7 @@ class Notes(Base):
     color = Column(String(20), nullable=False)
     reminder = Column(DateTime, default=None)
     user_id = Column(BigInteger, ForeignKey(column='user.id', ondelete='CASCADE'), nullable=False)
-    user = relationship(argument='User', back_populates='notes')   
+    user = relationship(argument='User', back_populates='notes')
+    
+    def __repr__(self):
+        return self.id   
