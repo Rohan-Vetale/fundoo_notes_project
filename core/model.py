@@ -10,8 +10,8 @@
 @Title : Fundoo Notes model module
 """
 
-from sqlalchemy.orm import declarative_base, Session
-from sqlalchemy import BigInteger, Boolean, Column, String, create_engine
+from sqlalchemy.orm import declarative_base, Session, relationship
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, String, create_engine, Text
 from core.settings import DATABASE_DIALECT, DATABASE_DRIVER, DATABASE_NAME, DATABASE_PASSWORD, DATABASE_USERNAME, DEFAULT_PORT, HOST
 
 database_url = f"{DATABASE_DIALECT}+{DATABASE_DRIVER}://{DATABASE_USERNAME}:{DATABASE_PASSWORD}@{HOST}:{DEFAULT_PORT}/{DATABASE_NAME}"
@@ -41,3 +41,13 @@ class User(Base):
     
     def __repr__(self):
         return self.user_name
+    
+class Notes(Base):
+    __tablename__ = 'notes'
+    id = Column(BigInteger, index=True, primary_key=True, nullable=False)
+    title = Column(String(50), nullable=False, unique=True)
+    description = Column(Text, nullable=False )
+    color = Column(String(20), nullable=False)
+    reminder = Column(DateTime, default=None)
+    user_id = Column(BigInteger, ForeignKey(column='user.id', ondelete='CASCADE'), nullable=False)
+    user = relationship(argument='User', back_populates='notes')   

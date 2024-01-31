@@ -25,3 +25,8 @@ class UserDetails(BaseModel):
 class Userlogin(BaseModel):
     user_name: str = Field(default='Enter user name', title='Enter User name')
     password: str = Field(default='Enter user password', title='Enter User password')
+    
+class UserNotes(BaseModel):
+    title: str = Field(default="Enter title of your note", pattern=r"^[A-Z]{1}\D{1,}")
+    description: str
+    color: str
