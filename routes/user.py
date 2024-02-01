@@ -25,7 +25,7 @@ jwt_handler = JWT()
 def user_registration(body: UserDetails, response: Response, db: Session = Depends(get_db)):
     """
     Description: This function create api for adding a new user.
-    Parameter: body as UserDetails object, response as Response object, db as database session.
+    Parameter: body : UserDetails object, response : Response object, db : database session.
     Return: Message of user data added with status code 201.
     """
     try:
@@ -70,7 +70,7 @@ def verify_user(token: str, db: Session = Depends(get_db)):
     """
     Description: This function create api to verify the request when we click the verification link on send on mail.
     Parameter: token : object as string, db : as database session.
-    Return: None
+    Return: Message with status code 200 if verified done or 500 if internal server error
     """
     try:
         decode_token = JWT.jwt_decode(token)
