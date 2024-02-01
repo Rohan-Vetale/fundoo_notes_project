@@ -1,3 +1,14 @@
+"""
+@Author: Rohan Vetale
+
+@Date: 2024-01-31 19:44
+
+@Last Modified by: Rohan Vetale
+
+@Last Modified time: 2024-02-01 19:24
+
+@Title : Fundoo Notes notes API
+"""
 from core.utils import JWT, send_verification_mail
 from sqlalchemy.exc import IntegrityError
 from fastapi import APIRouter, Depends, Request, status, Response, HTTPException
@@ -13,8 +24,8 @@ router_notes = APIRouter()
 def create_note(payload: UserNotes, request: Request, response: Response, db: Session = Depends(get_db)):
     """
     Description: This function create fastapi for creating new note.
-    Parameter: payload as NoteSchema object, response as Response object, db as database session.
-    Return: Message of note added with status code 201.
+    Parameter: payload : UserNotes object, request : request state , db as database session, response : HttpResponse, db : DB object
+    Return: Message of note added with status code 201
     """
     try:
         print(request.state.user.id)
@@ -36,14 +47,13 @@ def create_note(payload: UserNotes, request: Request, response: Response, db: Se
 def read_all_notes(request: Request, db: Session = Depends(get_db)):
     """
     Description: This function is used to get all the notes titles of a user
-    Parameter: response as Response object, db as database session.
+    Parameter: response : Response object, request : request state , db as database session, response : HttpResponse, db : DB object
     Return: Note titles of that user
     """
     try:
         notes_titles = db.query(Notes.title).filter_by(user_id=request.state.user.id).all()
         return{"message": f"All the notes title for {request.state.user.user_name} are : {notes_titles}"}
     except Exception as e:
-        print(e)
         return{"message": str(e)}
     
     
@@ -56,7 +66,7 @@ def view_full_note(note_id : int, request: Request,response:Response, db: Sessio
     """
     try:
         note_info = db.query(Notes).filter_by(user_id=request.state.user.id, id = note_id).one_or_none()
-
+        #get the queried note object
         if note_info is None:
             raise HTTPException(detail= "Check the id provided and try again !",status_code=status.HTTP_404_NOT_FOUND)
         if note_info:
@@ -68,3 +78,26 @@ def view_full_note(note_id : int, request: Request,response:Response, db: Sessio
     except Exception as e:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return{"message": "Check the note id and try again","status":400}
+    
+@router_notes.put(path="/update_notes/{note_id}", status_code=status.HTTP_200_OK)
+def update_notes(note_id: int , change_note: UserNotes, request: Request, response:Response, db: Session = Depends(get_db)):
+    """
+    Description: This function updates the user note by note id
+    Parameter: note_id : id of the note to be updated, request : request state , db as database session, response : HttpResponse, db : DB object
+    Return: Message of note updated with status code 200
+    """
+    try:
+        queried_note = db.query(Notes).filter_by(id=note_id, user_id = request.state.user.id).one_or_none()
+        #get the queried note object
+        updated_note = change_note.model_dump()
+        if queried_note:
+            [setattr(queried_note, key, value) for key, value in updated_note.items()]
+            db.commit()
+            db.refresh(queried_note)
+            return{"message":"Note updated succesfully !"}
+        #incase of incorrect note id return the status code 400 as bad request
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return{"message" : "Note cannot be updated"}
+    except Exception as e:
+        return{"message": f"Exception is {str(e)}"}
+            
