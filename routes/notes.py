@@ -101,3 +101,22 @@ def update_notes(note_id: int , change_note: UserNotes, request: Request, respon
     except Exception as e:
         return{"message": f"Exception is {str(e)}"}
             
+            
+@router_notes.delete("/delete/{note_id}", status_code=status.HTTP_200_OK)
+def delete_note(note_id: int, request: Request, response: Response, db: Session = Depends(get_db)):
+    """
+    Description: This function is used for deleting a note from the table of notes of a user
+    Parameter: note_id : id of the note to be deleted, status_code=status.HTTP_200_OK, tags=["Notes"]
+    Return: Message of note deleted with the status code 200 or 404 if note not found
+    """
+    try:
+        existing_note = db.query(Notes).filter_by(user_id=request.state.user.id, id=note_id).one_or_none()
+        #check and fetch for an existing note
+        if existing_note:
+            db.delete(existing_note)
+            db.commit()
+            return {'message': 'Note Deleted', 'status': 200}
+        raise HTTPException(detail='Note not found in the table database', status_code=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        response.status_code = 400
+        return {'message': str(e), 'status': 400}
