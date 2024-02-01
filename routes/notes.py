@@ -58,12 +58,11 @@ def view_full_note(note_id : int, request: Request,response:Response, db: Sessio
         note_info = db.query(Notes).filter_by(user_id=request.state.user.id, id = note_id).one_or_none()
 
         if note_info is None:
-            print(note_info)
             raise HTTPException(detail= "Check the id provided and try again !",status_code=status.HTTP_404_NOT_FOUND)
         if note_info:
-            note_title = "Note title : " + note_info.title + " , "
-            note_description = " Note description : " + note_info.description + " , "
-            note_color = " Note color : " + note_info.color 
+            note_title = f"Note title :  {note_info.title},  "
+            note_description = f"Note description :  {note_info.description},  "
+            note_color = f"Note color :  {note_info.color}  "
             complete_note = note_title + note_description + note_color
             return{"message": f"Complete note --> {complete_note}"}
     except Exception as e:
