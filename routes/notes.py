@@ -106,7 +106,7 @@ def update_notes(note_id: int , change_note: UserNotes, request: Request, respon
 def delete_note(note_id: int, request: Request, response: Response, db: Session = Depends(get_db)):
     """
     Description: This function is used for deleting a note from the table of notes of a user
-    Parameter: note_id : id of the note to be deleted, status_code=status.HTTP_200_OK, tags=["Notes"]
+    Parameter: note_id : id of the note to be deleted, status_code=status.HTTP_200_OK
     Return: Message of note deleted with the status code 200 or 404 if note not found
     """
     try:
