@@ -40,6 +40,7 @@ class User(Base):
     password = Column(String(100))
     is_verified = Column(Boolean, default=False)
     notes = relationship('Notes', back_populates='user')
+    label = relationship('Labels', back_populates='user')
     
     def __repr__(self):
         return self.user_name
@@ -56,4 +57,17 @@ class Notes(Base):
     user = relationship(argument='User', back_populates='notes')
     
     def __repr__(self):
-        return self.id   
+        return str(self.id)
+
+class Labels(Base):
+    __tablename__ = 'label'
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    label_name = Column(String(100))
+    user_id = Column(BigInteger, ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    user = relationship('User', back_populates='label')
+
+    def __repr__(self):
+        return self.label_name  
+
+    

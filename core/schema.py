@@ -30,3 +30,6 @@ class UserNotes(BaseModel):
     title: str = Field(default="Enter title of your note", pattern=r"^[A-Z]{1}\D{1,}")
     description: str
     color: str
+    
+class UserLabels(BaseModel):
+    label_name : str = Field(default='Enter label name', title='Enter label name')
