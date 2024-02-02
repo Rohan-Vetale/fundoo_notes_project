@@ -20,7 +20,7 @@ from passlib.hash import sha256_crypt
 router_notes = APIRouter()
 
 
-@router_notes.post(path='/add_notes', status_code=status.HTTP_201_CREATED)
+@router_notes.post(path='/add_notes', status_code=status.HTTP_201_CREATED, tags=["notes"])
 def create_note(payload: UserNotes, request: Request, response: Response, db: Session = Depends(get_db)):
     """
     Description: This function create fastapi for creating new note.
@@ -43,7 +43,7 @@ def create_note(payload: UserNotes, request: Request, response: Response, db: Se
         return {"message": str(e)}
     
     
-@router_notes.get(path='/get_all_notes/', status_code=status.HTTP_200_OK)
+@router_notes.get(path='/get_all_notes/', status_code=status.HTTP_200_OK, tags=["notes"])
 def read_all_notes(request: Request, db: Session = Depends(get_db)):
     """
     Description: This function is used to get all the notes titles of a user
@@ -57,7 +57,7 @@ def read_all_notes(request: Request, db: Session = Depends(get_db)):
         return{"message": str(e)}
     
     
-@router_notes.get(path='/view_full_note/{note_id}', status_code=status.HTTP_200_OK)
+@router_notes.get(path='/view_full_note/{note_id}', status_code=status.HTTP_200_OK, tags=["notes"])
 def view_full_note(note_id : int, request: Request,response:Response, db: Session = Depends(get_db)):
     """
     Description: This function is used to get all the notes titles of a user
@@ -79,7 +79,7 @@ def view_full_note(note_id : int, request: Request,response:Response, db: Sessio
         response.status_code = status.HTTP_400_BAD_REQUEST
         return{"message": "Check the note id and try again","status":400}
     
-@router_notes.put(path="/update_notes/{note_id}", status_code=status.HTTP_200_OK)
+@router_notes.put(path="/update_notes/{note_id}", status_code=status.HTTP_200_OK, tags=["notes"])
 def update_notes(note_id: int , change_note: UserNotes, request: Request, response:Response, db: Session = Depends(get_db)):
     """
     Description: This function updates the user note by note id
@@ -102,7 +102,7 @@ def update_notes(note_id: int , change_note: UserNotes, request: Request, respon
         return{"message": f"Exception is {str(e)}"}
             
             
-@router_notes.delete("/delete/{note_id}", status_code=status.HTTP_200_OK)
+@router_notes.delete("/delete/{note_id}", status_code=status.HTTP_200_OK, tags=["notes"])
 def delete_note(note_id: int, request: Request, response: Response, db: Session = Depends(get_db)):
     """
     Description: This function is used for deleting a note from the table of notes of a user

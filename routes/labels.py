@@ -19,7 +19,7 @@ from core.schema import  UserLabels
 router_labels = APIRouter()
 
 
-@router_labels.post(path='/add_label/', status_code=status.HTTP_201_CREATED)
+@router_labels.post(path='/add_label/', status_code=status.HTTP_201_CREATED, tags=["labels"])
 def create_label(payload: UserLabels, request: Request, response: Response, db: Session = Depends(get_db)):
     """
     Description: This function is used for creating a new label and adding it
@@ -42,7 +42,7 @@ def create_label(payload: UserLabels, request: Request, response: Response, db: 
         return {"message": str(e)}
     
     
-@router_labels.get(path='/get_all_labels/', status_code=status.HTTP_200_OK)
+@router_labels.get(path='/get_all_labels/', status_code=status.HTTP_200_OK, tags=["labels"])
 def read_all_labels(request: Request, db: Session = Depends(get_db)):
     """
     Description: This function is used to get all the labels of a user
@@ -56,8 +56,8 @@ def read_all_labels(request: Request, db: Session = Depends(get_db)):
         return{"message": str(e)}
     
     
-@router_labels.get(path='/view_full_label/{label_id}', status_code=status.HTTP_200_OK)
-def view_full_Label(label_id : int, request: Request,response:Response, db: Session = Depends(get_db)):
+@router_labels.get(path='/view_full_label/{label_id}', status_code=status.HTTP_200_OK, tags=["labels"])
+def view_full_Label(label_id: int, request: Request,response: Response, db: Session = Depends(get_db)):
     """
     Description: This function is used to get full label of a user
     Parameter: label_id: label number to fetch it, response : Response object, db : database session.
@@ -78,8 +78,8 @@ def view_full_Label(label_id : int, request: Request,response:Response, db: Sess
         response.status_code = status.HTTP_400_BAD_REQUEST
         return{"message": "Check the label id and try again","status":400}
     
-@router_labels.put(path="/update_labels/{label_id}", status_code=status.HTTP_200_OK)
-def update_labels(label_id: int , change_Label: UserLabels, request: Request, response:Response, db: Session = Depends(get_db)):
+@router_labels.put(path="/update_labels/{label_id}", status_code=status.HTTP_200_OK, tags=["labels"])
+def update_labels(label_id: int , change_Label: UserLabels, request: Request, response: Response, db: Session = Depends(get_db)):
     """
     Description: This function updates the user Label by Label id
     Parameter: label_id : id of the Label to be updated, request : request state , db as database session, response : HttpResponse, db : DB object
@@ -101,7 +101,7 @@ def update_labels(label_id: int , change_Label: UserLabels, request: Request, re
         return{"message": f"Exception is {str(e)}"}
             
             
-@router_labels.delete("/delete/{label_id}", status_code=status.HTTP_200_OK)
+@router_labels.delete("/delete/{label_id}", status_code=status.HTTP_200_OK, tags=["labels"])
 def delete_Label(label_id: int, request: Request, response: Response, db: Session = Depends(get_db)):
     """
     Description: This function is used for deleting a Label from the table of Labels of a user
