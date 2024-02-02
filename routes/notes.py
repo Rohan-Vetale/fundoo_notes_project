@@ -14,7 +14,7 @@ from sqlalchemy.exc import IntegrityError
 from fastapi import APIRouter, Depends, Request, status, Response, HTTPException
 from sqlalchemy.orm import Session
 from core.model import User, get_db, Notes
-from core.schema import UserDetails, UserNotes, Userlogin
+from core.schema import CollaboratorSchema, UserDetails, UserNotes, Userlogin
 from passlib.hash import sha256_crypt
 
 router_notes = APIRouter()
@@ -119,4 +119,77 @@ def delete_note(note_id: int, request: Request, response: Response, db: Session 
         raise HTTPException(detail='Note not found in the table database', status_code=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         response.status_code = 400
+        return {'message': str(e), 'status': 400}
+    
+    
+@router_notes.post('/add_collaborator', status_code=status.HTTP_201_CREATED, tags=["notes"])
+def add_collaborator(payload: CollaboratorSchema, request: Request, response: Response, db: Session = Depends(get_db)):
+    """
+    Description: Add a collaborator to a specific note.
+    Parameter: payload as CollaboratorSchema object containing note_id and user_id,
+               request as Request object, response as Response object, db as database session.
+    Return: Message indicating the collaborator addition with status code 201.
+    """
+    try:
+        # Query the note based on the provided note_id and user_id
+        note = db.query(Notes).filter_by(user_id=request.state.user.id, id=payload.note_id).first()
+        if not note:
+            raise HTTPException(detail='Note not found', status_code=status.HTTP_404_NOT_FOUND)
+
+        # Iterate through each collaborator_id in the payload
+        for collaborator_id in payload.user_id:
+            # Check if collaborator_id is not the same as the user_id making the request
+            if collaborator_id != request.state.user.id:
+                # Query the user based on collaborator_id
+                body = db.query(User).filter_by(id=collaborator_id).first()
+                if body:
+                    # Check if the collaborator is not already added to the note and add if not present
+                    if body not in note.user_m2m:
+                        note.user_m2m.append(body)
+                else:
+                    raise HTTPException(detail=f'User with id {collaborator_id} not found',
+                                        status_code=status.HTTP_404_NOT_FOUND)
+
+        # Commit changes to the database
+        db.commit()
+        return {'message': 'Collaborators added to the note', 'status': 201}
+    except Exception as e:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {'message': str(e), 'status': 400}
+
+
+@router_notes.delete('/remove_collaborator', status_code=status.HTTP_200_OK, tags=["notes"])
+def remove_collaborator(payload: CollaboratorSchema, request: Request, response: Response,
+                        db: Session = Depends(get_db)):
+    """
+    Description: Remove a collaborator from a specific note.
+    Parameter: payload as CollaboratorSchema object containing note_id and user_id,
+               request as Request object, response as Response object, db as database session.
+    Return: Message indicating the collaborator removal with status code 200.
+    """
+    try:
+        # Query the note based on the provided note_id and user_id
+        note = db.query(Notes).filter_by(user_id=request.state.user.id, id=payload.note_id).first()
+        if not note:
+            raise HTTPException(detail='Note not found', status_code=status.HTTP_404_NOT_FOUND)
+
+        # Iterate through each collaborator_id in the payload
+        for collaborator_id in payload.user_id:
+            # Check if collaborator_id is not the same as the user_id making the request
+            if collaborator_id != request.state.user.id:
+                # Query the user based on collaborator_id
+                body = db.query(User).filter_by(id=collaborator_id).first()
+                if body:
+                    # Check if the collaborator is in the note's collaborators list and remove if present
+                    if body in note.user_m2m:
+                        note.user_m2m.remove(body)
+                else:
+                    raise HTTPException(detail=f'User with id {collaborator_id} not found',
+                                        status_code=status.HTTP_404_NOT_FOUND)
+
+        # Commit changes to the database
+        db.commit()
+        return {'message': 'Collaborators removed from the note', 'status': 200}
+    except Exception as e:
+        response.status_code = status.HTTP_400_BAD_REQUEST
         return {'message': str(e), 'status': 400}

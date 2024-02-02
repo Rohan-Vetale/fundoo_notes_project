@@ -11,7 +11,7 @@
 """
 
 from sqlalchemy.orm import declarative_base, Session, relationship
-from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, String, create_engine, Text
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, String, Table, create_engine, Text
 from core.settings import DATABASE_DIALECT, DATABASE_DRIVER, DATABASE_NAME, DATABASE_PASSWORD, DATABASE_USERNAME, DEFAULT_PORT, HOST
 
 database_url = f"{DATABASE_DIALECT}+{DATABASE_DRIVER}://{DATABASE_USERNAME}:{DATABASE_PASSWORD}@{HOST}:{DEFAULT_PORT}/{DATABASE_NAME}"
@@ -26,6 +26,9 @@ def get_db():
     finally:
         db.close()
 
+collaborator = Table('collaborator', Base.metadata,
+                     Column('user_id', BigInteger, ForeignKey('user.id')),
+                     Column('note_id', BigInteger, ForeignKey('notes.id')))
 
 class User(Base):
     __tablename__ = 'user'
@@ -41,6 +44,7 @@ class User(Base):
     is_verified = Column(Boolean, default=False)
     notes = relationship('Notes', back_populates='user')
     label = relationship('Labels', back_populates='user')
+    note_m2m = relationship('Notes', secondary=collaborator, overlaps='user')
     
     def __repr__(self):
         return self.user_name
@@ -55,6 +59,7 @@ class Notes(Base):
     reminder = Column(DateTime, default=None)
     user_id = Column(BigInteger, ForeignKey(column='user.id', ondelete='CASCADE'), nullable=False)
     user = relationship(argument='User', back_populates='notes')
+    user_m2m = relationship('User', secondary=collaborator, overlaps='notes')
     
     def __repr__(self):
         return str(self.id)
@@ -69,5 +74,6 @@ class Labels(Base):
 
     def __repr__(self):
         return self.label_name  
+
 
     

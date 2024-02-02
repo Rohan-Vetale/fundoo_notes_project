@@ -9,6 +9,7 @@
 
 @Title : Fundoo Notes schema module
 """
+from typing import List
 from pydantic import BaseModel, Field, EmailStr
 
 
@@ -33,3 +34,7 @@ class UserNotes(BaseModel):
     
 class UserLabels(BaseModel):
     label_name : str = Field(default='Enter label name', title='Enter label name')
+    
+class CollaboratorSchema(BaseModel):
+    note_id: int = Field(title='Enter note id')
+    user_id: List[int]
