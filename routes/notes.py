@@ -13,7 +13,7 @@ from core.utils import JWT, send_verification_mail
 from sqlalchemy.exc import IntegrityError
 from fastapi import APIRouter, Depends, Request, status, Response, HTTPException
 from sqlalchemy.orm import Session
-from core.model import User, get_db, Notes
+from core.model import User, get_db, Notes, collaborator
 from core.schema import CollaboratorSchema, UserDetails, UserNotes, Userlogin
 from passlib.hash import sha256_crypt
 
@@ -24,7 +24,7 @@ router_notes = APIRouter()
 def create_note(payload: UserNotes, request: Request, response: Response, db: Session = Depends(get_db)):
     """
     Description: This function create fastapi for creating new note.
-    Parameter: payload : UserNotes object, request : request state , db as database session, response : HttpResponse, db : DB object
+    Parameter: payload : UserNotes object, request : request state , db :database session, response : HttpResponse, db : DB object
     Return: Message of note added with status code 201
     """
     try:
@@ -47,21 +47,24 @@ def create_note(payload: UserNotes, request: Request, response: Response, db: Se
 def read_all_notes(request: Request, db: Session = Depends(get_db)):
     """
     Description: This function is used to get all the notes titles of a user
-    Parameter: response : Response object, request : request state , db as database session, response : HttpResponse, db : DB object
+    Parameter: response : Response object, request : request state , db :database session, response : HttpResponse, db : DB object
     Return: Note titles of that user
     """
     try:
-        notes_titles = db.query(Notes.title).filter_by(user_id=request.state.user.id).all()
-        return{"message": f"All the notes title for {request.state.user.user_name} are : {notes_titles}"}
+        existing_note = db.query(Notes).filter_by(user_id=request.state.user.id).all()
+        collab_notes = db.query(collaborator).filter_by(user_id=request.state.user.id).all()
+        notes = db.query(Notes).filter(Notes.id.in_(list(map(lambda x: x.note_id, collab_notes)))).all()
+        existing_note.extend(notes)
+        return {'message': 'Data retrieved', 'status': 200, 'data': existing_note}
     except Exception as e:
         return{"message": str(e)}
     
-    
+
 @router_notes.get(path='/view_full_note/{note_id}', status_code=status.HTTP_200_OK, tags=["notes"])
 def view_full_note(note_id : int, request: Request,response:Response, db: Session = Depends(get_db)):
     """
     Description: This function is used to get all the notes titles of a user
-    Parameter: response as Response object, db as database session.
+    Parameter: response :Response object, db :database session.
     Return: Note titles of that user
     """
     try:
@@ -83,7 +86,7 @@ def view_full_note(note_id : int, request: Request,response:Response, db: Sessio
 def update_notes(note_id: int , change_note: UserNotes, request: Request, response:Response, db: Session = Depends(get_db)):
     """
     Description: This function updates the user note by note id
-    Parameter: note_id : id of the note to be updated, request : request state , db as database session, response : HttpResponse, db : DB object
+    Parameter: note_id : id of the note to be updated, request : request state , db :database session, response : HttpResponse, db : DB object
     Return: Message of note updated with status code 200
     """
     try:
@@ -126,8 +129,8 @@ def delete_note(note_id: int, request: Request, response: Response, db: Session 
 def add_collaborator(payload: CollaboratorSchema, request: Request, response: Response, db: Session = Depends(get_db)):
     """
     Description: Add a collaborator to a specific note.
-    Parameter: payload as CollaboratorSchema object containing note_id and user_id,
-               request as Request object, response as Response object, db as database session.
+    Parameter: payload :CollaboratorSchema object containing note_id and user_id,
+               request :Request object, response :Response object, db :database session.
     Return: Message indicating the collaborator addition with status code 201.
     """
     try:
@@ -163,8 +166,8 @@ def remove_collaborator(payload: CollaboratorSchema, request: Request, response:
                         db: Session = Depends(get_db)):
     """
     Description: Remove a collaborator from a specific note.
-    Parameter: payload as CollaboratorSchema object containing note_id and user_id,
-               request as Request object, response as Response object, db as database session.
+    Parameter: payload :CollaboratorSchema object containing note_id and user_id,
+               request :Request object, response :Response object, db :database session.
     Return: Message indicating the collaborator removal with status code 200.
     """
     try:
