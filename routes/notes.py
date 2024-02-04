@@ -83,21 +83,24 @@ def view_full_note(note_id : int, request: Request,response:Response, db: Sessio
         return{"message": "Check the note id and try again","status":400}
     
 @router_notes.put(path="/update_notes/{note_id}", status_code=status.HTTP_200_OK, tags=["notes"])
-def update_notes(note_id: int , change_note: UserNotes, request: Request, response:Response, db: Session = Depends(get_db)):
+def update_notes(note_id: int , payload: UserNotes, request: Request, response:Response, db: Session = Depends(get_db)):
     """
     Description: This function updates the user note by note id
     Parameter: note_id : id of the note to be updated, request : request state , db :database session, response : HttpResponse, db : DB object
     Return: Message of note updated with status code 200
     """
     try:
-        queried_note = db.query(Notes).filter_by(id=note_id, user_id = request.state.user.id).one_or_none()
-        #get the queried note object
-        updated_note = change_note.model_dump()
-        if queried_note:
-            [setattr(queried_note, key, value) for key, value in updated_note.items()]
-            db.commit()
-            db.refresh(queried_note)
-            return{"message":"Note updated succesfully !"}
+        note = db.query(Notes).filter_by(user_id=request.state.user.id, id=note_id).one_or_none()
+        if note is None:
+            collab = db.query(collaborator).filter_by(note_id=note_id, user_id=request.state.user.id).first()
+            if collab:
+                note = db.query(Notes).filter_by(id=note_id).first()
+            else:
+                raise HTTPException(detail='Note not found', status_code=status.HTTP_400_BAD_REQUEST)
+        updated_data = payload.model_dump()
+        [setattr(note, key, value) for key, value in updated_data.items()]
+        db.commit()
+        db.refresh(note)
         #incase of incorrect note id return the status code 400 as bad request
         response.status_code = status.HTTP_400_BAD_REQUEST
         return{"message" : "Note cannot be updated"}
