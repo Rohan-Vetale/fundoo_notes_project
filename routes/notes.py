@@ -9,13 +9,14 @@
 
 @Title : Fundoo Notes notes API
 """
-from core.utils import JWT, send_verification_mail
+from core.utils import JWT, send_verification_mail, Redis
 from sqlalchemy.exc import IntegrityError
 from fastapi import APIRouter, Depends, Request, status, Response, HTTPException
 from sqlalchemy.orm import Session
 from core.model import User, get_db, Notes, collaborator
 from core.schema import CollaboratorSchema, UserDetails, UserNotes, Userlogin
 from passlib.hash import sha256_crypt
+import json
 
 router_notes = APIRouter()
 
@@ -36,6 +37,8 @@ def create_note(payload: UserNotes, request: Request, response: Response, db: Se
         db.add(notes)
         db.commit()
         db.refresh(notes)
+        Redis.add_redis(f"user_{notes.user_id}", f"notes_{notes.id}", json.dumps(body))
+        
         return {'message': 'Note Added', 'status': 201, 'data': notes}
     except Exception as e:
         response.status_code = status.HTTP_400_BAD_REQUEST
@@ -51,6 +54,12 @@ def read_all_notes(request: Request, db: Session = Depends(get_db)):
     Return: Note titles of that user
     """
     try:
+        redis_cons = Redis.get_redis(f"user_{request.state.user.id}")
+        if redis_cons:
+            # Convert the string representation to a dictionary
+            for key, value in redis_cons.items():
+                redis_cons[key] = json.loads(value)
+            return {'message': 'Data retrieved', 'status': 200, 'data': redis_cons}
         existing_note = db.query(Notes).filter_by(user_id=request.state.user.id).all()
         collab_notes = db.query(collaborator).filter_by(user_id=request.state.user.id).all()
         notes = db.query(Notes).filter(Notes.id.in_(list(map(lambda x: x.note_id, collab_notes)))).all()
@@ -101,6 +110,7 @@ def update_notes(note_id: int , payload: UserNotes, request: Request, response:R
         [setattr(note, key, value) for key, value in updated_data.items()]
         db.commit()
         db.refresh(note)
+        Redis.add_redis(f"user_{request.state.user.id}", f"notes_{note.id}", json.dumps(updated_data))
         #incase of incorrect note id return the status code 400 as bad request
         response.status_code = status.HTTP_400_BAD_REQUEST
         return{"message" : "Note cannot be updated"}
@@ -121,6 +131,7 @@ def delete_note(note_id: int, request: Request, response: Response, db: Session 
         if existing_note:
             db.delete(existing_note)
             db.commit()
+            Redis.delete_redis(f"user_{request.state.user.id}", f"notes_{note_id}")
             return {'message': 'Note Deleted', 'status': 200}
         raise HTTPException(detail='Note not found in the table database', status_code=status.HTTP_404_NOT_FOUND)
     except Exception as e:

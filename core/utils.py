@@ -2,7 +2,7 @@
 import pytz
 
 from datetime import datetime, timedelta
-from core.settings import SECRET_KEY, ALGORITHM, SENDER_EMAIL, SENDER_PASSWORD
+from core.settings import HOST, REDIS_PORT, SECRET_KEY, ALGORITHM, SENDER_EMAIL, SENDER_PASSWORD
 from datetime import datetime, timedelta
 import pytz
 from jose import jwt
@@ -12,6 +12,10 @@ from core.model import get_db, User
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import redis
+
+redis_obj = redis.Redis(host=HOST, port=REDIS_PORT, decode_responses=True)
+
 
 def jwt_authentication(request : Request,db:Session = Depends(get_db)):
     token = request.headers.get('authorization')
@@ -93,4 +97,30 @@ def send_verification_mail(verification_token : str, email):
     except Exception as e:
         print(e)
         
-    
+class Redis:
+    @staticmethod
+    def add_redis(name, key, value):
+        """
+        Description: This function add and update data in redis memory.
+        Parameter: name, key, value as parameter.
+        Return: set the name, key, value to redis memory
+        """
+        return redis_obj.hset(name, key, value)
+
+    @staticmethod
+    def get_redis(name):
+        """
+        Description: This function get all data from redis memory.
+        Parameter: name as parameter.
+        Return: get all data from the redis memory using name.
+        """
+        return redis_obj.hgetall(name)
+
+    @staticmethod
+    def delete_redis(name, key):
+        """
+        Description: This function delete data from redis memory.
+        Parameter: name, key as parameter.
+        Return: delete data from redis using name and list of key.
+        """
+        return redis_obj.hdel(name, key)
