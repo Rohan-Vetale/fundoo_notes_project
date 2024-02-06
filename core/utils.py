@@ -102,7 +102,7 @@ class Redis:
     def add_redis(name, key, value):
         """
         Description: This function add and update data in redis memory.
-        Parameter: name, key, value as parameter.
+        Parameter: name: key, key: field ,  value: value as parameter.
         Return: set the name, key, value to redis memory
         """
         return redis_obj.hset(name, key, value)
