@@ -44,7 +44,7 @@ class User(Base):
     is_verified = Column(Boolean, default=False)
     notes = relationship('Notes', back_populates='user')
     label = relationship('Labels', back_populates='user')
-    note_m2m = relationship('Notes', secondary=collaborator, overlaps='user')
+    note_m2m = relationship('Notes', secondary='collaborator', back_populates='user_m2m', overlaps='note_m2m')
     
     def __repr__(self):
         return self.user_name
@@ -59,8 +59,7 @@ class Notes(Base):
     reminder = Column(DateTime, default=None)
     user_id = Column(BigInteger, ForeignKey(column='user.id', ondelete='CASCADE'), nullable=False)
     user = relationship(argument='User', back_populates='notes')
-    user_m2m = relationship('User', secondary=collaborator, overlaps='notes')
-    
+    user_m2m = relationship('User', secondary='collaborator', back_populates='note_m2m', overlaps='note_m2m')
     def __repr__(self):
         return str(self.id)
 

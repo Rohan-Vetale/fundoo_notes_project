@@ -35,7 +35,9 @@ def user_registration(body: UserDetails, response: Response, db: Session = Depen
         db.add(new_user)
         db.commit()
         token = jwt_handler.jwt_encode({'user_id': new_user.id})
-        send_verification_mail(token, new_user.email)
+        #using celery to send mail
+        result = send_verification_mail.delay(token, new_user.email)
+        result.status
         db.refresh(new_user)
         return {"status": 201, "message": "Registered successfully, check your mail to verify email", 'data': new_user, 'token' : token}
     except Exception as e:

@@ -2,7 +2,7 @@
 import pytz
 
 from datetime import datetime, timedelta
-from core.settings import HOST, REDIS_PORT, SECRET_KEY, ALGORITHM, SENDER_EMAIL, SENDER_PASSWORD
+from core.settings import HOST, REDIS_PORT, SECRET_KEY, ALGORITHM, SENDER_EMAIL, SENDER_PASSWORD, REDIS_URL
 from datetime import datetime, timedelta
 import pytz
 from jose import jwt
@@ -13,7 +13,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import redis
-
+from task import celery
 redis_obj = redis.Redis(host=HOST, port=REDIS_PORT, decode_responses=True)
 
 
@@ -57,7 +57,8 @@ class JWT:
             return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         except jwt.JWTError as e:
             print(e)
-            
+    
+@celery.task        
 def send_verification_mail(verification_token : str, email):
     """
     Description:
