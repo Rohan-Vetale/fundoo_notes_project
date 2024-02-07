@@ -27,7 +27,7 @@ def create_label(payload: UserLabels, request: Request, response: Response, db: 
     Return: Message of label added with status code 201
     """
     try:
-        print(request.state.user.id)
+        
         body = payload.model_dump()
         body.update({'user_id': request.state.user.id})
 
@@ -119,3 +119,4 @@ def delete_Label(label_id: int, request: Request, response: Response, db: Sessio
     except Exception as e:
         response.status_code = 400
         return {'message': str(e), 'status': 400}
+    

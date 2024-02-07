@@ -75,4 +75,11 @@ class Labels(Base):
         return self.label_name  
 
 
+class RequestLog(Base):
+    __tablename__ = "request_logs"
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    request_method = Column(String)
+    request_path = Column(String)
+    count = Column(BigInteger, default=1)
     

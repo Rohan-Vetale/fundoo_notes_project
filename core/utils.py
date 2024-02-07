@@ -8,7 +8,7 @@ import pytz
 from jose import jwt
 from fastapi import Depends, HTTPException, Request,status
 from sqlalchemy.orm import Session
-from core.model import get_db, User
+from core.model import get_db, User, RequestLog
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -17,14 +17,17 @@ from task import celery
 redis_obj = redis.Redis(host=HOST, port=REDIS_PORT, decode_responses=True)
 
 
-def jwt_authentication(request : Request,db:Session = Depends(get_db)):
-    token = request.headers.get('authorization')
-    decoded_token = JWT.jwt_decode(token)
-    user_id = decoded_token.get('user_id')
-    user_data = db.query(User).filter_by(id=user_id).one_or_none()
-    if not user_data:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-    request.state.user = user_data
+def jwt_authentication(request : Request, db:Session = Depends(get_db)):
+    try:
+        token = request.headers.get('authorization')
+        decoded_token = JWT.jwt_decode(token)
+        user_id = decoded_token.get('user_id')
+        user_data = db.query(User).filter_by(id=user_id).one_or_none()
+        if not user_data:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+        request.state.user = user_data
+    except Exception as e:
+        print(e)
     
     
     # user_data = db.query(User).filter_by(id=user_id).one_or_none
@@ -125,3 +128,24 @@ class Redis:
         Return: delete data from redis using name and list of key.
         """
         return redis_obj.hdel(name, key)
+    
+def request_loger(request):
+    """
+    Description: This function update the middleware table in database.
+    Parameter: request as parameter.
+    Return: None
+    """
+    session = get_db()
+    db = next(session)
+    #db:Session = Depends(get_db)
+    log = db.query(RequestLog).filter_by(request_method=request.method,
+                                         request_path=request.url.path).one_or_none()
+    if not log:
+        #if the row does not exist then create it and make count 1
+        log = RequestLog(request_method=request.method, request_path=request.url.path, count=1)
+        db.add(log)
+    else:
+        #if the row exists then make the count = count +1
+        log.count += 1
+
+    db.commit()
