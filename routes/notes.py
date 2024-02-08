@@ -111,11 +111,13 @@ def update_notes(note_id: int , payload: UserNotes, request: Request, response:R
         db.commit()
         db.refresh(note)
         Redis.add_redis(f"user_{request.state.user.id}", f"notes_{note.id}", json.dumps(updated_data))
+        # Return success response with status code 200
+        return {"message": "Note updated successfully"}
+    except Exception as e:
         #incase of incorrect note id return the status code 400 as bad request
         response.status_code = status.HTTP_400_BAD_REQUEST
-        return{"message" : "Note cannot be updated"}
-    except Exception as e:
-        return{"message": f"Exception is {str(e)}"}
+        return{"message" : f"Note cannot be updated {str(e)}"}
+        
             
             
 @router_notes.delete("/delete/{note_id}", status_code=status.HTTP_200_OK, tags=["notes"])
