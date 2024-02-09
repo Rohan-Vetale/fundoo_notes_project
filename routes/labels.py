@@ -120,3 +120,23 @@ def delete_Label(label_id: int, request: Request, response: Response, db: Sessio
         response.status_code = 400
         return {'message': str(e), 'status': 400}
     
+    
+@router_labels.delete("/delete_all/", status_code=status.HTTP_200_OK, tags=["labels"])
+def delete_Label( request: Request, response: Response, db: Session = Depends(get_db)):
+    """
+    Description: This function is used for deleting all Labels from the table of Labels of a user
+    Parameter: request: request by user,  status_code=status.HTTP_200_OK
+    Return: Message of Label deleted with the status code 200 or 404 if Labels not found
+    """
+    try:
+        all_labels = db.query(Labels).filter_by(user_id=request.state.user.id).all()
+        if label:
+            for label in all_labels:
+                
+                db.delete(label)
+                db.commit()
+            return {'message': 'Labels Deleted', 'status': 200}    
+        raise HTTPException(detail='Labels not found in the table database', status_code=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        response.status_code = 400
+        return {'message': str(e), 'status': 400}

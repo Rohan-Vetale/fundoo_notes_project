@@ -177,7 +177,7 @@ def add_collaborator(payload: CollaboratorSchema, request: Request, response: Re
         return {'message': str(e), 'status': 400}
 
 
-@router_notes.delete('/remove_collaborator', status_code=status.HTTP_200_OK, tags=["notes"])
+@router_notes.post('/remove_collaborator', status_code=status.HTTP_200_OK, tags=["notes"])
 def remove_collaborator(payload: CollaboratorSchema, request: Request, response: Response,
                         db: Session = Depends(get_db)):
     """

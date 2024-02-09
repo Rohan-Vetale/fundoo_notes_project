@@ -91,7 +91,7 @@ def collab_detail():
     return {
             
     "note_id": 1,
-    "user_id": 2
+    "user_id": [2]
     
     }
 
@@ -101,8 +101,8 @@ def user2_data():
   "user_name": "rbv123456",
   "password": "rbv123456",
   "email": "vetalerohan2@gmail.com",
-  "first_name": "Rohan2",
-  "last_name": "Vetale2",
+  "first_name": "RohanN",
+  "last_name": "VetaleN",
   "state": "Maha",
   "phone": "8356853442",
   "is_verified": "true"
